@@ -9,3 +9,4 @@
 | 5 | Verifica e collaudo finale | COMPLETED | Smoke test Electron CSP e pipeline verificati senza errori |
 | 6 | Fix compatibilità macOS QuickTime (FourCC tag hvc1 per HEVC) | COMPLETED | Risolto: aggiunto -tag:v hvc1 e scaling pari per apertura nativa QuickTime |
 | 7 | Fix audio assente su macOS (forzatura AAC su MP4 + aformat stereo) | COMPLETED | Risolto: CoreAudio non supporta MP3 in MP4; forzato AAC con aformat stereo 48kHz |
+| 8 | Creazione repository GitHub, push e pubblicazione release v1.0.0 | COMPLETED | Repo: muccio/video-audio-joiner-splitter, Release: v1.0.0 pubblicata |
