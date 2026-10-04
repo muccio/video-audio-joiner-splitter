@@ -1,0 +1,16 @@
+{
+  "name": "_video_audio_joiner_splitter",
+  "version": "1.0.0",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "test": "node test/test-service.js && node test/test-integration.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "electron": "^41.7.1"
+  }
+}

@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; media-src 'self' file: blob:; img-src 'self' data:;">
+  <title>Video & Audio Joiner & Compressor</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Custom macOS Header -->
+  <header class="app-header">
+    <div class="window-drag-area"></div>
+    <div class="header-title">
+      <span class="app-icon">🎬</span>
+      <span class="app-name">MediaJoiner Pro</span>
+      <span class="app-badge">macOS</span>
+    </div>
+    <div class="header-actions">
+      <span id="hardwareStatus" class="status-pill status-ready">⚡ Apple Hardware Acceleration attiva</span>
+    </div>
+  </header>
+
+  <main class="app-content">
+    <!-- Sezione Caricamento File -->
+    <section class="sources-grid">
+      <!-- Card Video -->
+      <div class="source-card" id="videoCard">
+        <div class="card-header">
+          <div class="card-title-group">
+            <span class="card-icon video-icon">📹</span>
+            <h3>Sorgente Video</h3>
+          </div>
+          <button class="btn btn-secondary btn-sm" id="btnBrowseVideo">Sfoglia...</button>
+        </div>
+
+        <div class="drop-zone" id="videoDropZone">
+          <div class="drop-empty" id="videoDropEmpty">
+            <div class="drop-icon">📂</div>
+            <p class="drop-main-text">Trascina qui il file Video</p>
+            <p class="drop-sub-text">Supporta MP4, MOV, MKV, WebM, AVI</p>
+          </div>
+          <div class="preview-container hidden" id="videoPreviewContainer">
+            <video id="videoPreviewEl" playsinline preload="metadata" muted></video>
+            <div class="preview-overlay-info" id="videoOverlayInfo"></div>
+          </div>
+        </div>
+
+        <div class="file-details hidden" id="videoDetails">
+          <div class="detail-row">
+            <span class="detail-label">Nome:</span>
+            <span class="detail-value" id="videoName">-</span>
+          </div>
+          <div class="detail-tags">
+            <span class="tag" id="videoDurationTag">00:00</span>
+            <span class="tag" id="videoResolutionTag">-</span>
+            <span class="tag" id="videoFpsTag">- fps</span>
+            <span class="tag" id="videoCodecTag">-</span>
+            <span class="tag" id="videoSizeTag">- MB</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card Audio -->
+      <div class="source-card" id="audioCard">
+        <div class="card-header">
+          <div class="card-title-group">
+            <span class="card-icon audio-icon">🎵</span>
+            <h3>Nuova Traccia Audio</h3>
+          </div>
+          <button class="btn btn-secondary btn-sm" id="btnBrowseAudio">Sfoglia...</button>
+        </div>
+
+        <div class="drop-zone" id="audioDropZone">
+          <div class="drop-empty" id="audioDropEmpty">
+            <div class="drop-icon">🎧</div>
+            <p class="drop-main-text">Trascina qui la traccia Audio</p>
+            <p class="drop-sub-text">Supporta MP3, WAV, AAC, M4A, FLAC, AIFF</p>
+          </div>
+          <div class="preview-container hidden" id="audioPreviewContainer">
+            <canvas id="audioVisualizerCanvas"></canvas>
+            <audio id="audioPreviewEl" preload="metadata"></audio>
+            <div class="audio-wave-hint">Traccia audio caricata</div>
+          </div>
+        </div>
+
+        <div class="file-details hidden" id="audioDetails">
+          <div class="detail-row">
+            <span class="detail-label">Nome:</span>
+            <span class="detail-value" id="audioName">-</span>
+          </div>
+          <div class="detail-tags">
+            <span class="tag tag-audio" id="audioDurationTag">00:00</span>
+            <span class="tag tag-audio" id="audioChannelsTag">- ch</span>
+            <span class="tag tag-audio" id="audioSampleRateTag">- Hz</span>
+            <span class="tag tag-audio" id="audioCodecTag">-</span>
+            <span class="tag tag-audio" id="audioSizeTag">- MB</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Sezione Avviso Allungamento Automatico Video -->
+    <section class="banner-section hidden" id="extensionBanner">
+      <div class="extension-alert">
+        <div class="alert-icon">⚡</div>
+        <div class="alert-body">
+          <div class="alert-title" id="extensionTitle">Audio più lungo del video (+0.0s)</div>
+          <div class="alert-desc">
+            Il video originale ha una durata inferiore rispetto all'audio. Scegli come allungare il video finale:
+          </div>
+        </div>
+        <div class="extension-options">
+          <label class="radio-card active" data-mode="freeze">
+            <input type="radio" name="extendMode" value="freeze" checked>
+            <span class="radio-title">🖼️ Congela Ultimo Fotogramma</span>
+            <span class="radio-sub">Blocca l'ultimo frame fino alla fine dell'audio</span>
+          </label>
+          <label class="radio-card" data-mode="loop">
+            <input type="radio" name="extendMode" value="loop">
+            <span class="radio-title">🔁 Ripeti in Loop</span>
+            <span class="radio-sub">Ripete il video dall'inizio a ripetizione</span>
+          </label>
+          <label class="radio-card" data-mode="stretch">
+            <input type="radio" name="extendMode" value="stretch">
+            <span class="radio-title">⏳ Rallenta Video (Stretch)</span>
+            <span class="radio-sub">Adatta la velocità del video all'audio</span>
+          </label>
+        </div>
+      </div>
+    </section>
+
+    <!-- Sezione Timeline & Allineamento -->
+    <section class="timeline-section" id="timelineSection">
+      <div class="section-header">
+        <div class="section-title-group">
+          <span class="section-icon">⏱️</span>
+          <h3>Timeline di Allineamento</h3>
+          <span class="timeline-hint">Trascina la traccia audio per sincronizzarla al video</span>
+        </div>
+        <div class="timeline-controls-bar">
+          <button class="btn btn-icon" id="btnPlayPause" title="Riproduci / Pausa sincronizzato (Spazio)">▶️ Play</button>
+          <button class="btn btn-icon" id="btnStop" title="Torna all'inizio">⏹️ Stop</button>
+          <div class="timeline-time-display">
+            <span id="currentTimeDisplay">00:00.00</span> / <span id="totalTimeDisplay">00:00.00</span>
+          </div>
+          <div class="zoom-controls">
+            <button class="btn btn-xs" id="btnZoomOut" title="Zoom indietro">-</button>
+            <span id="zoomLevel">100%</span>
+            <button class="btn btn-xs" id="btnZoomIn" title="Zoom avanti">+</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Area Timeline Interattiva -->
+      <div class="timeline-viewport" id="timelineViewport">
+        <!-- Righello dei tempi -->
+        <div class="timeline-ruler-container" id="rulerContainer">
+          <div class="timeline-track-label-col">Tempo</div>
+          <div class="timeline-ruler" id="timelineRuler"></div>
+        </div>
+
+        <!-- Traccia Video -->
+        <div class="timeline-track-row">
+          <div class="timeline-track-label-col">
+            <span class="track-dot dot-video"></span> Video
+          </div>
+          <div class="timeline-track-lane" id="videoTrackLane">
+            <div class="timeline-clip clip-video" id="videoClip">
+              <span class="clip-title" id="videoClipTitle">Nessun video</span>
+              <span class="clip-duration" id="videoClipDuration">0.0s</span>
+            </div>
+            <div class="timeline-clip clip-extended hidden" id="videoExtendedClip">
+              <span class="clip-title" id="videoExtendedTitle">Estensione (Freeze)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Traccia Audio -->
+        <div class="timeline-track-row">
+          <div class="timeline-track-label-col">
+            <span class="track-dot dot-audio"></span> Audio
+          </div>
+          <div class="timeline-track-lane" id="audioTrackLane">
+            <div class="timeline-clip clip-audio" id="audioClip">
+              <span class="clip-handle left-handle"></span>
+              <span class="clip-title" id="audioClipTitle">Nessun audio</span>
+              <span class="clip-duration" id="audioClipDuration">0.0s</span>
+              <span class="clip-handle right-handle"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Cursore Playhead -->
+        <div class="timeline-playhead" id="timelinePlayhead">
+          <div class="playhead-handle"></div>
+          <div class="playhead-line"></div>
+        </div>
+      </div>
+
+      <!-- Barra di Controllo Offset Preciso -->
+      <div class="offset-bar">
+        <div class="offset-group">
+          <label for="audioOffsetInput">Offset Audio (Ritardo / Anticipo):</label>
+          <div class="offset-input-wrap">
+            <button class="btn btn-sm btn-step" id="btnOffsetMinus1">-1s</button>
+            <button class="btn btn-sm btn-step" id="btnOffsetMinus01">-0.1s</button>
+            <input type="number" id="audioOffsetInput" value="0.00" step="0.05" class="input-offset">
+            <span class="input-unit">sec</span>
+            <button class="btn btn-sm btn-step" id="btnOffsetPlus01">+0.1s</button>
+            <button class="btn btn-sm btn-step" id="btnOffsetPlus1">+1s</button>
+          </div>
+        </div>
+        <div class="offset-quick-align">
+          <button class="btn btn-secondary btn-sm" id="btnAlignStart">Allinea a 0.0s</button>
+          <button class="btn btn-secondary btn-sm" id="btnAlignEnd">Allinea alla fine del video</button>
+        </div>
+        <div class="audio-mix-option">
+          <label class="checkbox-label">
+            <input type="checkbox" id="mixOriginalAudioCheckbox">
+            <span>Mixa anche l'audio originale del video</span>
+          </label>
+        </div>
+      </div>
+    </section>
+
+    <!-- Sezione Codec & Compressione Rapida -->
+    <section class="encoding-section">
+      <div class="section-header">
+        <div class="section-title-group">
+          <span class="section-icon">⚙️</span>
+          <h3>Codec & Compressione Video/Audio</h3>
+        </div>
+      </div>
+
+      <!-- Preset Rapidi -->
+      <div class="presets-row">
+        <div class="preset-card active" data-preset="hardware">
+          <div class="preset-badge">Consigliato su Mac</div>
+          <div class="preset-icon">⚡</div>
+          <div class="preset-name">Apple Hardware</div>
+          <div class="preset-desc">VideoToolbox H.264 / Encoding ultra-veloce e fluido</div>
+        </div>
+        <div class="preset-card" data-preset="quality">
+          <div class="preset-icon">🎬</div>
+          <div class="preset-name">Alta Qualità</div>
+          <div class="preset-desc">H.264 (libx264 CRF 18) / Massima nitidezza</div>
+        </div>
+        <div class="preset-card" data-preset="compressed">
+          <div class="preset-icon">📦</div>
+          <div class="preset-name">Compatto (H.265)</div>
+          <div class="preset-desc">HEVC / File ridotto fino al 50% con qualità ottima</div>
+        </div>
+        <div class="preset-card" data-preset="prores">
+          <div class="preset-icon">💎</div>
+          <div class="preset-name">Apple ProRes</div>
+          <div class="preset-desc">Formato master lossless per editing Final Cut/Premiere</div>
+        </div>
+        <div class="preset-card" data-preset="custom">
+          <div class="preset-icon">🎛️</div>
+          <div class="preset-name">Personalizzato</div>
+          <div class="preset-desc">Controllo completo su codec, bitrate e risoluzione</div>
+        </div>
+      </div>
+
+      <!-- Configurazione Parametri -->
+      <div class="encoding-parameters" id="encodingParameters">
+        <div class="param-group">
+          <label for="videoCodecSelect">Codec Video</label>
+          <select id="videoCodecSelect" class="form-select">
+            <option value="h264_videotoolbox" selected>Apple H.264 (Hardware VideoToolbox)</option>
+            <option value="hevc_videotoolbox">Apple HEVC/H.265 (Hardware VideoToolbox)</option>
+            <option value="libx264">H.264 (Software libx264)</option>
+            <option value="libx265">HEVC/H.265 (Software libx265)</option>
+            <option value="libsvtav1">AV1 (SVT-AV1)</option>
+            <option value="prores_ks">Apple ProRes 422</option>
+            <option value="copy">Copia Stream (Senza ricodifica se compatibile)</option>
+          </select>
+        </div>
+
+        <div class="param-group">
+          <label for="audioCodecSelect">Codec Audio</label>
+          <select id="audioCodecSelect" class="form-select">
+            <option value="aac" selected>AAC (Consigliato - Compatibile macOS & QuickTime)</option>
+            <option value="libmp3lame">MP3 (LAME - Per MKV / VLC)</option>
+            <option value="libopus">Opus (Alta Efficienza - Per MKV)</option>
+            <option value="flac">FLAC (Lossless)</option>
+            <option value="pcm_s16le">PCM WAV (Non compresso)</option>
+            <option value="copy">Copia Stream Audio</option>
+          </select>
+        </div>
+
+        <div class="param-group">
+          <label for="qualitySlider">Qualità / Compressione (CRF)</label>
+          <div class="slider-wrap">
+            <input type="range" id="qualitySlider" min="16" max="32" value="23" class="form-range">
+            <div class="slider-labels">
+              <span>Alta Qualità (16)</span>
+              <span id="qualityValueLabel">Bilanciato (23)</span>
+              <span>Compresso (32)</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="param-group">
+          <label for="resolutionSelect">Risoluzione</label>
+          <select id="resolutionSelect" class="form-select">
+            <option value="original" selected>Originale (Mantieni)</option>
+            <option value="3840x2160">4K Ultra HD (3840x2160)</option>
+            <option value="2560x1440">2K QHD (2560x1440)</option>
+            <option value="1920x1080">Full HD (1920x1080)</option>
+            <option value="1280x720">HD 720p (1280x720)</option>
+          </select>
+        </div>
+
+        <div class="param-group">
+          <label for="audioBitrateSelect">Bitrate Audio</label>
+          <select id="audioBitrateSelect" class="form-select">
+            <option value="128k">128 kbps (Standard)</option>
+            <option value="192k" selected>192 kbps (Qualità Alta)</option>
+            <option value="256k">256 kbps (Studio)</option>
+            <option value="320k">320 kbps (Massima)</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <!-- Barra Finale di Esportazione -->
+    <section class="action-footer">
+      <div class="footer-summary">
+        <div class="summary-item">
+          <span class="summary-label">Durata Output:</span>
+          <span class="summary-val" id="outputDurationSummary">00:00</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">Modalità:</span>
+          <span class="summary-val" id="outputModeSummary">Normale</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">Codec:</span>
+          <span class="summary-val" id="outputCodecSummary">H.264 (Hardware) + AAC</span>
+        </div>
+      </div>
+
+      <div class="footer-actions">
+        <button class="btn btn-primary btn-lg" id="btnExport" disabled>
+          <span class="btn-icon">🚀</span>
+          <span>Accoppia ed Esporta Video</span>
+        </button>
+      </div>
+    </section>
+  </main>
+
+  <!-- Modale Overlay Progresso Esportazione -->
+  <div class="modal-backdrop hidden" id="progressModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="modalTitle">Esportazione & Compressione in corso...</h3>
+      </div>
+      <div class="modal-body">
+        <div class="progress-bar-container">
+          <div class="progress-bar-fill" id="progressBarFill" style="width: 0%;"></div>
+        </div>
+        <div class="progress-percent" id="progressPercent">0%</div>
+
+        <div class="progress-stats-grid">
+          <div class="stat-box">
+            <span class="stat-label">Tempo</span>
+            <span class="stat-val" id="progressTime">0.0s / 0.0s</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-label">Velocità</span>
+            <span class="stat-val" id="progressSpeed">0x</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-label">Framerate</span>
+            <span class="stat-val" id="progressFps">0 fps</span>
+          </div>
+        </div>
+
+        <div class="export-success-box hidden" id="exportSuccessBox">
+          <div class="success-icon">🎉</div>
+          <div class="success-title">Esportazione completata con successo!</div>
+          <div class="success-path" id="successFilePath"></div>
+          <div class="success-actions">
+            <button class="btn btn-primary" id="btnOpenExported">Riproduci Video</button>
+            <button class="btn btn-secondary" id="btnShowInFinder">Mostra nel Finder</button>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer" id="modalFooterNormal">
+        <button class="btn btn-secondary" id="btnCancelExport">Annulla</button>
+      </div>
+      <div class="modal-footer hidden" id="modalFooterDone">
+        <button class="btn btn-secondary" id="btnCloseModal">Chiudi</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="timeline.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,26 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Builds & Outputs
+dist/
+out/
+build/
+*.mp4
+*.m4a
+*.mp3
+*.mov
+*.mkv
+
+# macOS System Files
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Logs
+*.log
+npm-debug.log*
+
+# Test artifacts
+/test_tmp/
