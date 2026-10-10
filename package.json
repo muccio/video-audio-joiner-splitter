@@ -1,16 +1,27 @@
 {
-  "name": "_video_audio_joiner_splitter",
-  "version": "1.0.0",
+  "name": "mediajoiner-pro",
+  "productName": "MediaJoiner Pro",
+  "version": "1.1.0",
+  "description": "Video & Audio Joiner, Timeline Alignment & Hardware-Accelerated Compressor per macOS",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "test": "node test/test-service.js && node test/test-integration.js"
+    "test": "node test/test-service.js && node test/test-integration.js",
+    "build:app": "npx electron-packager . \"MediaJoiner Pro\" --platform=darwin --arch=arm64 --out=dist --icon=assets/icon --overwrite --app-bundle-id=com.muccio.mediajoinerpro --app-category-type=public.app-category.video --prune=true && cp assets/icon.icns \"dist/MediaJoiner Pro-darwin-arm64/MediaJoiner Pro.app/Contents/Resources/electron.icns\"",
+    "dist:mac": "npm run build:app && hdiutil create -volname \"MediaJoiner Pro\" -srcfolder \"dist/MediaJoiner Pro-darwin-arm64/MediaJoiner Pro.app\" -ov -format UDZO \"dist/MediaJoiner-Pro-1.1.0-arm64.dmg\" && ditto -c -k --sequesterRsrc --keepParent \"dist/MediaJoiner Pro-darwin-arm64/MediaJoiner Pro.app\" \"dist/MediaJoiner-Pro-1.1.0-mac-arm64.zip\""
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
+  "keywords": [
+    "video",
+    "audio",
+    "joiner",
+    "ffmpeg",
+    "videotoolbox",
+    "macos"
+  ],
+  "author": "Mario Salvucci",
+  "license": "MIT",
   "devDependencies": {
+    "@electron/packager": "^18.3.6",
     "electron": "^41.7.1"
   }
 }

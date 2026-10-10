@@ -11,10 +11,15 @@ class FFmpegService {
 
   detectBinary(name) {
     const candidates = [
+      process.resourcesPath ? path.join(process.resourcesPath, 'bin', name) : null,
+      process.resourcesPath ? path.join(process.resourcesPath, name) : null,
+      path.join(__dirname, '..', 'bin', name),
       `/opt/homebrew/bin/${name}`,
       `/usr/local/bin/${name}`,
-      `/usr/bin/${name}`
-    ];
+      `/usr/bin/${name}`,
+      `/bin/${name}`
+    ].filter(Boolean);
+
     for (const c of candidates) {
       if (fs.existsSync(c)) {
         return c;

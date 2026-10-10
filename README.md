@@ -40,19 +40,39 @@ Se la traccia audio è più lunga del video (o anticipata/ritardata tramite offs
 
 ---
 
-## 💻 Come Avviare l'Applicazione
+## 🍏 Installazione Standalone per macOS (Senza Riga di Comando)
 
-Apri il terminale nella cartella del progetto ed esegui:
+Non è necessario aprire il terminale: puoi utilizzare l'applicazione nativa come qualsiasi app macOS.
+
+1. **Scarica l'applicazione**:
+   - Scarica il file **`MediaJoiner-Pro-1.1.0-arm64.dmg`** o **`MediaJoiner-Pro-1.1.0-mac-arm64.zip`** dalla sezione [GitHub Releases](https://github.com/muccio/video-audio-joiner-splitter/releases).
+2. **Installazione**:
+   - Apri il file `.dmg` e trascina **MediaJoiner Pro.app** nella cartella **Applicazioni** (o scompatta lo zip e fai doppio clic sull'app).
+3. **Avvio Diretto**:
+   - Fai doppio clic sull'icona di **MediaJoiner Pro** nel Launchpad o nel Finder per avviarla subito!
+
+---
+
+## 💻 Modalità Sviluppatore / Da Riga di Comando
+
+Se desideri eseguire l'app dai sorgenti:
 
 ```bash
+# Avvio in modalità sviluppo
 npm start
+
+# Compilazione dell'applicazione standalone .app
+npm run build:app
+
+# Creazione pacchetto DMG e ZIP per la distribuzione
+npm run dist:mac
 ```
 
 ---
 
 ## 🧪 Esecuzione dei Test
 
-Per eseguire i test unitari e di integrazione multimediale:
+Per eseguire i test unitari e di integrazione multimediale con simulazione QuickTime Player:
 
 ```bash
 npm test
